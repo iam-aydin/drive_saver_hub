@@ -4,6 +4,36 @@ Drive Saver Hub is a clean, efficient, and modern Flutter application designed t
 
 Built with **Material Design 3**, it provides a seamless user experience, complete with dark/light mode support, persistent storage, and a specialized WebView browser that cleans up unnecessary Google UI elements for a distraction-free experience.
 
+## 📥 Download
+
+<div align=left>
+<table>
+    <thead align=left>
+        <tr>
+            <th>OS</th>
+            <th>Download</th>
+        </tr>
+    </thead>
+    <tbody align=left>
+        <tr>
+            <td>Android</td>
+            <td>
+                <a href="https://github.com/iam-aydin/drive_saver_hub/releases/latest/download/drive_saver_hub_v1.0.0.apk">
+                    <img src="https://img.shields.io/badge/Download-APK-3DDC84.svg?logo=android">
+                </a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+</div>
+
+
+## 📱 How to Use
+Add Deployments: Enter your Google Script Deployment URL or just the unique ID in the input field.
+Manage: Use the list to reorder items (long-press and drag) or tap a card to edit the ID.
+Launch: Tap "Launch Tabs" to open all your active deployments in the tabbed browser.
+Customize: Rename tabs by long-pressing the tab title in the browser view.
+
 ## ✨ Features
 
 - **Smart URL Parsing:** Paste a full Google Script URL or just the ID—the app automatically extracts the correct Deployment ID for you.
@@ -23,7 +53,7 @@ Built with **Material Design 3**, it provides a seamless user experience, comple
   - `shared_preferences`: For saving user configurations locally.
   - `url_launcher`: For handling external links.
 
-## 📥 Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 - Flutter SDK installed.
@@ -46,12 +76,6 @@ flutter pub get
 ```bash
 flutter run
 ```
-
-## 📱 How to Use
-Add Deployments: Enter your Google Script Deployment URL or just the unique ID in the input field.
-Manage: Use the list to reorder items (long-press and drag) or tap a card to edit the ID.
-Launch: Tap "Launch Tabs" to open all your active deployments in the tabbed browser.
-Customize: Rename tabs by long-pressing the tab title in the browser view.
 
 ## 👨‍💻 Developer
 Created by Aydin Vesali M. (@iam-aydin)
