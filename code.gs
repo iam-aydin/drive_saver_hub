@@ -1,10 +1,11 @@
 // ==================== CONFIG ====================
-var DATA_SAVER_FOLDER_ID = 'YOUR OWN DRIVE FOLDER ID';   // ← replace with your own folder ID
+var DATA_SAVER_FOLDER_ID = 'REPLACE WITH YOUR OWN DRIVE FOLDER ID';   // ← replace with your own folder ID
 var FOLDER_NAME = '';   // ← your custom folder name (shown in UI)(OPTIONAL)
 var APP_TITLE = '';   // ← change this to whatever you want(OPTIONAL)
+var MAX_CHUNK_RETRIES = 3;           // ← Added this missing constant
 // ===============================================
 
-// ========== PART 1: The Web App Interface (with tooltips) ==========
+// ========== PART 1: Web App (Material You + i18n) ==========
 function doGet() {
   return HtmlService.createHtmlOutput(`
     <!DOCTYPE html>
@@ -14,7 +15,6 @@ function doGet() {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
         <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
         <style>
-          /* --- All your existing styles unchanged --- */
           :root {
             --md-sys-color-surface: #fef7ff;
             --md-sys-color-surface-container: #ffffff;
@@ -31,7 +31,6 @@ function doGet() {
             --md-sys-radius: 28px;
             --md-sys-radius-small: 20px;
           }
-
           body.dark {
             --md-sys-color-surface: #1c1b1f;
             --md-sys-color-surface-container: #2b2930;
@@ -48,205 +47,101 @@ function doGet() {
           }
 
           * { margin: 0; padding: 0; box-sizing: border-box; }
-
           body {
-            font-family: 'Google Sans', 'Roboto', system-ui, -apple-system, sans-serif;
-            text-align: center;
-            padding: 24px 16px 16px;
+            font-family: 'Google Sans', 'Roboto', system-ui, sans-serif;
+            text-align: center; padding: 24px 16px 16px;
             background: var(--md-sys-color-surface);
             color: var(--md-sys-color-on-surface);
             transition: background 0.3s, color 0.3s;
             direction: ltr;
           }
-
-          body.rtl, body.rtl * {
-            font-family: 'Vazirmatn', 'Google Sans', 'Roboto', system-ui, sans-serif !important;
-          }
-          body.rtl .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined' !important;
-          }
-          body.rtl {
-            direction: rtl;
-          }
+          body.rtl, body.rtl * { font-family: 'Vazirmatn', 'Google Sans', 'Roboto', system-ui, sans-serif !important; }
+          body.rtl .material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; }
+          body.rtl { direction: rtl; }
 
           .title-chip {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            display: inline-flex; align-items: center; justify-content: center;
             background: var(--md-sys-color-primary-container);
             color: var(--md-sys-color-on-primary-container);
-            border-radius: 24px;
-            padding: 8px 24px;
-            font-size: 20px;
-            cursor: default;
-            font-weight: 500;
-            letter-spacing: 0.1px;
+            border-radius: 24px; padding: 8px 24px; font-size: 20px; cursor: default;
+            font-weight: 500; letter-spacing: 0.1px; line-height: 1.2; min-height: 48px;
             transition: background 0.3s, color 0.3s;
-            line-height: 1.2;
-            min-height: 48px;
           }
 
           .top-controls {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
+            display: flex; flex-direction: row; align-items: center; justify-content: center;
+            gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
           }
 
           #connectivityBar {
-            display: inline-flex;
-            flex-direction: row-reverse;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 20px;
-            padding: 8px 24px;
-            border-radius: 24px;
-            cursor: default;
-            background: var(--md-sys-color-surface-variant);
-            color: var(--md-sys-color-on-surface);
-            box-shadow: var(--md-sys-shadow);
+            display: inline-flex; flex-direction: row-reverse; align-items: center; justify-content: center;
+            gap: 8px; font-size: 20px; padding: 8px 24px; border-radius: 24px; cursor: default;
+            background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface);
+            box-shadow: var(--md-sys-shadow); line-height: 1.2; min-height: 48px;
             transition: background 0.3s, color 0.3s;
-            line-height: 1.2;
-            min-height: 48px;
           }
-          #connectivityIcon {
-            font-size: 24px;
-          }
+          #connectivityIcon { font-size: 24px; }
           #connectivityBar.connected { color: #0d652d; }
           body.dark #connectivityBar.connected { color: #a5d6a7; }
           #connectivityBar.disconnected { color: #d93025; }
           body.dark #connectivityBar.disconnected { color: #ef9a9a; }
 
           .theme-toggle-btn {
-            background: var(--md-sys-color-surface-variant);
-            border: none;
-            color: var(--md-sys-color-on-surface);
-            font-size: 28px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--md-sys-shadow);
-            transition: background 0.3s;
+            background: var(--md-sys-color-surface-variant); border: none;
+            color: var(--md-sys-color-on-surface); font-size: 28px; cursor: pointer;
+            padding: 8px; border-radius: 50%; width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--md-sys-shadow); transition: background 0.3s;
           }
-          .theme-toggle-btn:hover {
-            background: var(--md-sys-color-secondary-container);
-          }
+          .theme-toggle-btn:hover { background: var(--md-sys-color-secondary-container); }
 
-          .main-container {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-          }
+          .main-container { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
 
           .card {
-            background: var(--md-sys-color-surface-container);
-            border-radius: var(--md-sys-radius);
-            padding: 28px 24px;
-            max-width: 380px;
-            width: 100%;
-            box-shadow: var(--md-sys-shadow);
-            transition: background 0.3s, box-shadow 0.3s;
-            display: flex;
-            flex-direction: column;
+            background: var(--md-sys-color-surface-container); border-radius: var(--md-sys-radius);
+            padding: 28px 24px; max-width: 380px; width: 100%; box-shadow: var(--md-sys-shadow);
+            transition: background 0.3s, box-shadow 0.3s; display: flex; flex-direction: column;
           }
+          .left-card, .right-card { max-width: 380px; }
 
-          .left-card, .right-card {
-            max-width: 380px;
-          }
-
-          h2, h3 {
-            font-weight: 500;
-            color: var(--md-sys-color-on-surface);
-          }
+          h2, h3 { font-weight: 500; color: var(--md-sys-color-on-surface); }
 
           input {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 28px;
-            border: 2px solid var(--md-sys-color-outline);
-            background: transparent;
-            color: var(--md-sys-color-on-surface);
-            font-family: system-ui, monospace;
-            font-size: 15px;
-            margin: 12px 0;
-            outline: none;
-            transition: border 0.2s, background 0.3s;
+            width: 100%; padding: 14px 18px; border-radius: 28px;
+            border: 2px solid var(--md-sys-color-outline); background: transparent;
+            color: var(--md-sys-color-on-surface); font-family: system-ui, monospace;
+            font-size: 15px; margin: 12px 0; outline: none; transition: border 0.2s, background 0.3s;
           }
-
-          input:focus {
-            border-color: var(--md-sys-color-primary);
-            background: rgba(27,110,243,0.04);
-          }
+          input:focus { border-color: var(--md-sys-color-primary); background: rgba(27,110,243,0.04); }
 
           button {
-            background: var(--md-sys-color-primary);
-            color: var(--md-sys-color-on-primary);
-            border: none;
-            padding: 14px 24px;
-            border-radius: 28px;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-            letter-spacing: 0.2px;
+            background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);
+            border: none; padding: 14px 24px; border-radius: 28px; font-size: 15px; font-weight: 500;
+            cursor: pointer; transition: background 0.2s, box-shadow 0.2s, transform 0.1s; letter-spacing: 0.2px;
           }
-
           button:hover { box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
           button:active { transform: scale(0.97); }
 
           .outlined-btn {
-            background: transparent;
-            color: var(--md-sys-color-primary);
-            border: 2px solid var(--md-sys-color-outline);
+            background: transparent; color: var(--md-sys-color-primary); border: 2px solid var(--md-sys-color-outline);
           }
-          .outlined-btn:hover {
-            background: rgba(27,110,243,0.08);
-            border-color: var(--md-sys-color-primary);
-          }
+          .outlined-btn:hover { background: rgba(27,110,243,0.08); border-color: var(--md-sys-color-primary); }
 
           .row { display: flex; gap: 8px; align-items: center; }
-          .small-input {
-            text-align: center;
-          }
+          .small-input { text-align: center; }
 
           .icon-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            background: transparent;
-            color: var(--md-sys-color-primary);
-            border: 2px solid var(--md-sys-color-outline);
-            cursor: pointer;
+            width: 48px; height: 48px; border-radius: 50%; padding: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            background: transparent; color: var(--md-sys-color-primary);
+            border: 2px solid var(--md-sys-color-outline); cursor: pointer;
             transition: background 0.2s, border 0.2s;
           }
-          .icon-btn:hover {
-            background: rgba(27,110,243,0.08);
-            border-color: var(--md-sys-color-primary);
-          }
+          .icon-btn:hover { background: rgba(27,110,243,0.08); border-color: var(--md-sys-color-primary); }
 
           .status-box {
-            margin-top: 16px;
-            padding: 12px;
-            border-radius: 16px;
-            font-size: 14px;
-            background: var(--md-sys-color-surface-variant);
-            color: var(--md-sys-color-on-surface);
+            margin-top: 16px; padding: 12px; border-radius: 16px; font-size: 14px;
+            background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface);
             transition: background 0.3s, color 0.3s;
           }
           .success { color: #0d652d; }
@@ -254,94 +149,43 @@ function doGet() {
           body.dark .success { color: #b9f6ca; }
           body.dark .error   { color: #ffab91; }
 
-          #firstIndex {
-            border-color: #0d652d !important;
-            color: #0d652d !important;
-          }
-          body.dark #firstIndex {
-            border-color: #b9f6ca !important;
-            color: #b9f6ca !important;
-          }
-          #firstIndex::placeholder {
-            color: #0d652d;
-            opacity: 0.6;
-          }
-          body.dark #firstIndex::placeholder {
-            color: #b9f6ca;
-          }
+          #firstIndex { border-color: #0d652d !important; color: #0d652d !important; }
+          body.dark #firstIndex { border-color: #b9f6ca !important; color: #b9f6ca !important; }
+          #firstIndex::placeholder { color: #0d652d; opacity: 0.6; }
+          body.dark #firstIndex::placeholder { color: #b9f6ca; }
 
-          #lastIndex {
-            border-color: #d93025 !important;
-            color: #d93025 !important;
-          }
-          body.dark #lastIndex {
-            border-color: #ffab91 !important;
-            color: #ffab91 !important;
-          }
-          #lastIndex::placeholder {
-            color: #d93025;
-            opacity: 0.6;
-          }
-          body.dark #lastIndex::placeholder {
-            color: #ffab91;
-          }
+          #lastIndex { border-color: #d93025 !important; color: #d93025 !important; }
+          body.dark #lastIndex { border-color: #ffab91 !important; color: #ffab91 !important; }
+          #lastIndex::placeholder { color: #d93025; opacity: 0.6; }
+          body.dark #lastIndex::placeholder { color: #ffab91; }
 
-          p, .small-text {
-            font-size: 12px;
-            margin-top: 12px;
-            opacity: 0.8;
-          }
+          p, .small-text { font-size: 12px; margin-top: 12px; opacity: 0.8; }
 
           .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             font-size: 24px;
           }
 
-          .placeholder-bold::placeholder {
-            font-weight: bold;
-            text-transform: uppercase;
-            opacity: 0.7;
-          }
+          .placeholder-bold::placeholder { font-weight: bold; text-transform: uppercase; opacity: 0.7; }
 
-          .footer {
-            margin-top: 24px;
-            display: flex;
-            justify-content: center;
-          }
+          .footer { margin-top: 24px; display: flex; justify-content: center; }
 
           .lang-btn {
             background: var(--md-sys-color-primary-container);
             color: var(--md-sys-color-on-primary-container);
-            border: none;
-            border-radius: 20px;
-            padding: 8px 20px;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            border: none; border-radius: 20px; padding: 8px 20px; font-size: 14px;
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
             transition: background 0.3s;
           }
-
-          .lang-btn:hover {
-            background: var(--md-sys-color-secondary-container);
-          }
+          .lang-btn:hover { background: var(--md-sys-color-secondary-container); }
 
           .drive-link-btn {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 8px 20px;
-            background: var(--md-sys-color-primary);
-            color: var(--md-sys-color-on-primary);
-            border-radius: 28px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
+            display: inline-block; margin-top: 8px; padding: 8px 20px;
+            background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);
+            border-radius: 28px; text-decoration: none; font-size: 14px; font-weight: 500;
             transition: box-shadow 0.2s;
           }
-          .drive-link-btn:hover {
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-          }
+          .drive-link-btn:hover { box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
         </style>
       </head>
       <body>
@@ -358,55 +202,13 @@ function doGet() {
 
         <div class="main-container">
           <div class="card left-card">
-            <h2 data-i18n="mainHeader" style="text-align:center; font-size:1.3rem; margin-bottom: 12px;">📥 Save to Google Drive</h2>
-            <div style="position:relative; width:100%;">
-
-        <input
-          type="text"
-          id="fileUrl"
-          data-i18n-placeholder="urlPlaceholder"
-          placeholder="Paste direct download link here"
-          value="https://aka.ms/vs/17/release/vs_community.exe"
-          style="padding-right:60px;"
-        >
-
-        <button
-          id="queueBtn"
-          style="
-            position:absolute;
-            right:6px;
-            top:50%;
-            transform:translateY(-50%);
-            width:42px;
-            height:42px;
-            border-radius:50%;
-            border:none;
-            background:#1b6ef3;
-            color:white;
-            font-size:26px;
-            cursor:pointer;
-            padding:0;
-          "
-        >+</button>
-
-</div>
+            <h2 data-i18n="mainHeader" style="text-align:center; font-size:1.3rem; margin-bottom:12px;">📥 Save to Google Drive</h2>
+            <input type="text" id="fileUrl" data-i18n-placeholder="urlPlaceholder" placeholder="Paste direct download link here" value="https://aka.ms/vs/17/release/vs_community.exe">
             <div class="row">
               <button id="saveBtn" style="flex:1;" data-i18n="saveBtn">⬇️ Download & Save</button>
               <button id="checkSizeBtn" class="icon-btn" data-i18n-title="checkSizeTitle" title="Check file size">🗃️</button>
             </div>
             <div id="status" class="status-box">Ready</div>
-            <div
-              id="queueBox"
-              class="status-box"
-              style="
-                margin-top:12px;
-                text-align:left;
-                max-height:180px;
-                overflow:auto;
-              "
-            >
-              Queue empty
-            </div>
             <p data-i18n="saveNote">File will be saved to folder: <strong>${FOLDER_NAME}</strong><br>(max 2GB+)</p>
           </div>
 
@@ -439,7 +241,6 @@ function doGet() {
         </div>
 
         <script>
-          // ==================== i18n ====================
           const i18n = {
             en: {
               mainHeader: '📥 Save to Google Drive',
@@ -523,13 +324,11 @@ function doGet() {
             if (status) {
               text.textContent = i18n[currentLang]['connected'];
               icon.textContent = 'wifi';
-              bar.classList.add('connected');
-              bar.classList.remove('disconnected');
+              bar.classList.add('connected'); bar.classList.remove('disconnected');
             } else {
               text.textContent = i18n[currentLang]['disconnected'];
               icon.textContent = 'wifi_off';
-              bar.classList.add('disconnected');
-              bar.classList.remove('connected');
+              bar.classList.add('disconnected'); bar.classList.remove('connected');
             }
           }
 
@@ -546,31 +345,21 @@ function doGet() {
               const key = el.dataset.i18nTitle;
               if (i18n[lang] && i18n[lang][key]) el.title = i18n[lang][key];
             });
-
-            if (rtlLangs.includes(lang)) {
-              document.body.classList.add('rtl');
-            } else {
-              document.body.classList.remove('rtl');
-            }
-
+            if (rtlLangs.includes(lang)) document.body.classList.add('rtl');
+            else document.body.classList.remove('rtl');
             document.querySelector('#langToggle span[data-i18n="langLabel"]').textContent = i18n[lang].langLabel;
-
             const saveBtn = document.getElementById('saveBtn');
             if (!saveBtn.disabled) saveBtn.textContent = i18n[lang].saveBtn;
             const rangeBtn = document.getElementById('rangeSaveBtn');
             if (!rangeBtn.disabled) rangeBtn.textContent = i18n[lang].rangeSaveBtn;
             const combineBtn = document.getElementById('combineBtn');
             if (!combineBtn.disabled) combineBtn.textContent = i18n[lang].combineBtn;
-
             const statusReadyEn = i18n['en'].statusReady;
             const statusReadyFa = i18n['fa'].statusReady;
-            if (statusEl.innerText.trim() === statusReadyEn || statusEl.innerText.trim() === statusReadyFa) {
+            if (statusEl.innerText.trim() === statusReadyEn || statusEl.innerText.trim() === statusReadyFa)
               statusEl.innerHTML = '<span class="success">' + i18n[lang].statusReady + '</span>';
-            }
-            if (rangeStatusEl.innerText.trim() === statusReadyEn || rangeStatusEl.innerText.trim() === statusReadyFa) {
+            if (rangeStatusEl.innerText.trim() === statusReadyEn || rangeStatusEl.innerText.trim() === statusReadyFa)
               rangeStatusEl.innerHTML = '<span class="success">' + i18n[lang].rangeStatusReady + '</span>';
-            }
-
             if (isConnected !== null) updateConnectivity(isConnected);
           }
 
@@ -579,37 +368,26 @@ function doGet() {
             localStorage.setItem('lang', currentLang);
             applyLanguage(currentLang);
           };
-
           applyLanguage(currentLang);
 
-          // Theme toggle
           const themeToggle = document.getElementById('themeToggle');
           const themeIcon = themeToggle.querySelector('.material-symbols-outlined');
           const bodyEl = document.body;
           const setTheme = (isDark) => {
-            if (isDark) {
-              bodyEl.classList.add('dark');
-              themeIcon.textContent = 'light_mode';
-              localStorage.setItem('themeMode', 'dark');
-            } else {
-              bodyEl.classList.remove('dark');
-              themeIcon.textContent = 'dark_mode';
-              localStorage.setItem('themeMode', 'light');
-            }
+            if (isDark) { bodyEl.classList.add('dark'); themeIcon.textContent = 'light_mode'; localStorage.setItem('themeMode', 'dark'); }
+            else { bodyEl.classList.remove('dark'); themeIcon.textContent = 'dark_mode'; localStorage.setItem('themeMode', 'light'); }
           };
-          const savedTheme = localStorage.getItem('themeMode');
-          setTheme(savedTheme === 'dark');
+          setTheme((localStorage.getItem('themeMode')||'light') === 'dark');
           themeToggle.onclick = () => setTheme(!bodyEl.classList.contains('dark'));
 
-          function setStatus(msg, isError = false) {
-            statusEl.innerHTML = isError ? '<span class="error">' + msg + '</span>' : '<span class="success">' + msg + '</span>';
+          function setStatus(msg, isError=false) {
+            statusEl.innerHTML = isError ? '<span class="error">'+msg+'</span>' : '<span class="success">'+msg+'</span>';
+          }
+          function setRangeStatus(msg, isError=false) {
+            rangeStatusEl.innerHTML = isError ? '<span class="error">'+msg+'</span>' : '<span class="success">'+msg+'</span>';
           }
 
-          function setRangeStatus(msg, isError = false) {
-            rangeStatusEl.innerHTML = isError ? '<span class="error">' + msg + '</span>' : '<span class="success">' + msg + '</span>';
-          }
-
-          // Ping every 7 seconds
+          // Ping drive.google.com every 7 seconds
           function pingInternet() {
             fetch('https://drive.google.com/favicon.ico', { mode: 'no-cors' })
               .then(() => updateConnectivity(true))
@@ -618,52 +396,47 @@ function doGet() {
           pingInternet();
           setInterval(pingInternet, 7000);
 
-          // ==================== MAIN DOWNLOAD (now passes timestamp) ====================
-          document.getElementById('fileUrl').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') document.getElementById('saveBtn').click();
+          // Global Enter → Check file size
+          document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+              e.preventDefault();
+              document.getElementById('checkSizeBtn').click();
+            }
           });
 
+          // Download buttons
           document.getElementById('saveBtn').onclick = function() {
-            const btn = this, url = document.getElementById('fileUrl').value;
+            const btn = this, url = document.getElementById('fileUrl').value.trim();
             if (!url) return;
             btn.disabled = true;
             btn.textContent = i18n[currentLang].starting;
             setStatus(i18n[currentLang].analyzing);
-            const downloadTime = new Date().toLocaleString();      // user's local time
+            const downloadTime = new Date().toLocaleString();
             google.script.run
               .withSuccessHandler(function(msg) {
-                btn.disabled = false;
-                btn.textContent = i18n[currentLang].saveBtn;
-                setStatus(msg);
+                btn.disabled = false; btn.textContent = i18n[currentLang].saveBtn; setStatus(msg);
               })
               .withFailureHandler(function(err) {
-                btn.disabled = false;
-                btn.textContent = i18n[currentLang].tryAgain;
+                btn.disabled = false; btn.textContent = i18n[currentLang].tryAgain;
                 setStatus(i18n[currentLang].errorPrefix + err.message, true);
               })
-              .chooseBasedOnFileSize(currentLang, url, downloadTime);   // pass time
+              .chooseBasedOnFileSize(currentLang, url, downloadTime);
           };
 
           document.getElementById('checkSizeBtn').onclick = function() {
-            const btn = this, url = document.getElementById('fileUrl').value;
+            const btn = this, url = document.getElementById('fileUrl').value.trim();
             if (!url) return;
             btn.disabled = true;
             setStatus(i18n[currentLang].fetchingSize);
             google.script.run
-              .withSuccessHandler(function(info) {
-                btn.disabled = false;
-                setStatus(info);
-              })
-              .withFailureHandler(function(err) {
-                btn.disabled = false;
-                setStatus(i18n[currentLang].errorPrefix + err.message, true);
-              })
+              .withSuccessHandler(function(info) { btn.disabled = false; setStatus(info); })
+              .withFailureHandler(function(err) { btn.disabled = false; setStatus(i18n[currentLang].errorPrefix + err.message, true); })
               .getFileSizeInfo(currentLang, url);
           };
 
           document.getElementById('rangeSaveBtn').onclick = function() {
             const btn = this;
-            const chunkUrl = document.getElementById('chunkUrl').value;
+            const chunkUrl = document.getElementById('chunkUrl').value.trim();
             const first = parseInt(document.getElementById('firstIndex').value, 10);
             const last  = parseInt(document.getElementById('lastIndex').value, 10);
             if (!chunkUrl || isNaN(first) || isNaN(last)) {
@@ -677,26 +450,22 @@ function doGet() {
             btn.disabled = true;
             btn.textContent = i18n[currentLang].startingRange;
             setRangeStatus(i18n[currentLang].schedulingRange + first + ' to ' + last + '...');
-            const downloadTime = new Date().toLocaleString();      // user's local time
+            const downloadTime = new Date().toLocaleString();
             google.script.run
               .withSuccessHandler(function(msg) {
-                btn.disabled = false;
-                btn.textContent = i18n[currentLang].rangeSaveBtn;
-                setRangeStatus(msg);
+                btn.disabled = false; btn.textContent = i18n[currentLang].rangeSaveBtn; setRangeStatus(msg);
               })
               .withFailureHandler(function(err) {
-                btn.disabled = false;
-                btn.textContent = i18n[currentLang].rangeSaveBtn;
+                btn.disabled = false; btn.textContent = i18n[currentLang].rangeSaveBtn;
                 setRangeStatus(i18n[currentLang].errorPrefix + err.message, true);
               })
-              .startChunkRangeDownload(currentLang, chunkUrl, first, last, downloadTime);   // pass time
+              .startChunkRangeDownload(currentLang, chunkUrl, first, last, downloadTime);
           };
 
-          // ==================== COMBINE CHUNKS (fixed ordering) ====================
+          // Combine chunk files (order‑independent)
           function getChunkNumber(filename) {
-            // Search for ANY digit sequence inside the name and take the last one
             const matches = filename.match(/(\d+)/g);
-            return matches && matches.length > 0 ? parseInt(matches[matches.length - 1], 10) : 0;
+            return matches && matches.length > 0 ? parseInt(matches[matches.length-1],10) : 0;
           }
 
           const chunkSelector = document.getElementById('chunkSelector');
@@ -712,7 +481,7 @@ function doGet() {
             }
           });
 
-          function combineChunks() {
+          document.getElementById('combineBtn').onclick = function combineChunks() {
             const combineBtn = document.getElementById('combineBtn');
             const fileInput = document.getElementById('chunkSelector');
             const outputNameInput = document.getElementById('outputFileName');
@@ -741,11 +510,8 @@ function doGet() {
                   const blob = new Blob(chunkBlobs, { type: 'application/octet-stream' });
                   const a = document.createElement('a');
                   const url = URL.createObjectURL(blob);
-                  a.href = url;
-                  a.download = outputName;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
+                  a.href = url; a.download = outputName;
+                  document.body.appendChild(a); a.click(); document.body.removeChild(a);
                   URL.revokeObjectURL(url);
                   combineBtn.disabled = false;
                   combineBtn.textContent = i18n[currentLang].combineBtn;
@@ -759,8 +525,7 @@ function doGet() {
               };
               reader.readAsArrayBuffer(file);
             });
-          }
-          document.getElementById('combineBtn').onclick = combineChunks;
+          };
         </script>
       </body>
     </html>
@@ -796,9 +561,7 @@ var t = {
 function _(lang, key, params) {
   var str = t[lang] && t[lang][key] ? t[lang][key] : t['en'][key];
   if (params) {
-    for (var k in params) {
-      str = str.replace('{' + k + '}', params[k]);
-    }
+    for (var k in params) str = str.replace('{' + k + '}', params[k]);
   }
   return str;
 }
@@ -808,7 +571,7 @@ function getDriveLinkButton(url, lang) {
   return '<a href="' + url + '" target="_blank" class="drive-link-btn">' + text + '</a>';
 }
 
-// ========== PART 2: File size & chunk info ==========
+// ========== PART 2: File size info ==========
 function getFileSizeInfo(lang, fileUrl) {
   var CHUNK_SIZE = 45 * 1024 * 1024;
   var fileSize = null;
@@ -824,16 +587,14 @@ function getFileSizeInfo(lang, fileUrl) {
       var cl = resp.getHeaders()['Content-Length'];
       if (cl) fileSize = parseInt(cl, 10);
     }
-  } catch (e) {
-    return _(lang, 'sizeUnknown');
-  }
+  } catch (e) { return _(lang, 'sizeUnknown'); }
   if (!fileSize || fileSize === 0) return _(lang, 'sizeUnknownRange');
   var sizeMB = (fileSize / 1048576).toFixed(2);
   var chunks = Math.ceil(fileSize / CHUNK_SIZE);
   return _(lang, 'sizeInfo', { size: sizeMB, chunks: chunks });
 }
 
-// ========== PART 3: Choose download method (accepts downloadTime) ==========
+// ========== PART 3: Choose download method ==========
 function chooseBasedOnFileSize(lang, fileUrl, downloadTime) {
   var SIZE_LIMIT = 50 * 1024 * 1024;
   var fileSize = null;
@@ -849,18 +610,20 @@ function chooseBasedOnFileSize(lang, fileUrl, downloadTime) {
       var cl = resp.getHeaders()['Content-Length'];
       if (cl) fileSize = parseInt(cl, 10);
     }
-  } catch (e) {
-    console.log('Size check failed: ' + e);
-  }
+  } catch (e) { console.log('Size check failed: ' + e); }
   if (fileSize === null || fileSize === 0) return startChunkedDownload(lang, fileUrl, downloadTime);
   if (fileSize > SIZE_LIMIT) return startChunkedDownload(lang, fileUrl, downloadTime);
   return downloadCustomUrl(lang, fileUrl, downloadTime);
 }
 
-// ========== PART 4: Direct download (with timestamp) ==========
+// ========== PART 4: Direct download (with folder + INFO.txt) ==========
 function downloadCustomUrl(lang, fileUrl, downloadTime) {
   try {
-    var response = UrlFetchApp.fetch(fileUrl, { followRedirects: true });
+    var response = UrlFetchApp.fetch(fileUrl, { followRedirects: true, muteHttpExceptions: true });
+    var responseCode = response.getResponseCode();
+    if (responseCode !== 200) {
+      throw new Error('HTTP ' + responseCode + ': ' + response.getContentText().slice(0, 200));
+    }
     var blob = response.getBlob();
     var fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1).split('?')[0];
     if (!fileName || fileName.length < 2) fileName = 'downloaded_file.bin';
@@ -890,7 +653,7 @@ function downloadCustomUrl(lang, fileUrl, downloadTime) {
   }
 }
 
-// ========== PART 5: Full scheduled chunked download (retryCounts added) ==========
+// ========== PART 5: Full chunked download (with retry) ==========
 function startChunkedDownload(lang, fileUrl, downloadTime) {
   var CHUNK_SIZE = 45 * 1024 * 1024;
   var parentFolder = DriveApp.getFolderById(DATA_SAVER_FOLDER_ID);
@@ -913,7 +676,6 @@ function startChunkedDownload(lang, fileUrl, downloadTime) {
   } catch (e) { totalSize = 0; }
 
   var numChunks = totalSize > 0 ? Math.ceil(totalSize / CHUNK_SIZE) : '?';
-
   var chunkFolderName = 'chunk_' + baseFileName;
   var chunkFolder = parentFolder.createFolder(chunkFolderName);
 
@@ -928,8 +690,10 @@ function startChunkedDownload(lang, fileUrl, downloadTime) {
   chunkFolder.createFile('INFO.txt', infoText, MimeType.PLAIN_TEXT);
 
   var approxSecPerChunk = 10;
-  var timeEst = numChunks === '?' ? 'unknown'
-    : (function() { var mins = Math.ceil(numChunks * approxSecPerChunk / 60); return '~' + mins + ' minute' + (mins !== 1 ? 's' : ''); })();
+  var timeEst = numChunks === '?' ? 'unknown' : (function() {
+    var mins = Math.ceil(numChunks * approxSecPerChunk / 60);
+    return '~' + mins + ' minute' + (mins !== 1 ? 's' : '');
+  })();
 
   var state = {
     fileUrl: fileUrl, outputFolderId: DATA_SAVER_FOLDER_ID, baseFileName: baseFileName,
@@ -937,7 +701,7 @@ function startChunkedDownload(lang, fileUrl, downloadTime) {
     chunkFolderId: chunkFolder.getId(),
     endByte: totalSize > 0 ? totalSize - 1 : undefined,
     firstChunkIndex: 0, rangeEndIndex: undefined, running: false, triggerId: null,
-    retryCounts: {}   // NEW: track retries per chunkIndex
+    retryCounts: {}
   };
   var stateKey = 'chunkState_' + baseFileName + '_full';
   PropertiesService.getScriptProperties().setProperty(stateKey, JSON.stringify(state));
@@ -952,8 +716,7 @@ function startChunkedDownload(lang, fileUrl, downloadTime) {
   return _(lang, 'fullStart', { chunks: numChunks, time: timeEst, link: buttonHtml });
 }
 
-
-// ========== PART 6: Range scheduled download (retryCounts added) ==========
+// ========== PART 6: Range chunked download (with retry) ==========
 function startChunkRangeDownload(lang, fileUrl, startIndex, endIndex, downloadTime) {
   var CHUNK_SIZE = 45 * 1024 * 1024;
   var parentFolder = DriveApp.getFolderById(DATA_SAVER_FOLDER_ID);
@@ -974,7 +737,6 @@ function startChunkRangeDownload(lang, fileUrl, startIndex, endIndex, downloadTi
   var chunkFolderName = 'chunk_' + baseFileName;
   var folders = parentFolder.getFoldersByName(chunkFolderName);
   var chunkFolder = folders.hasNext() ? folders.next() : parentFolder.createFolder(chunkFolderName);
-
   if (!folders.hasNext()) {
     var numChunksForInfo = Math.ceil((Math.min((endIndex * CHUNK_SIZE) + CHUNK_SIZE - 1, totalSize > 0 ? totalSize - 1 : Infinity) - startIndex * CHUNK_SIZE + 1) / CHUNK_SIZE);
     var infoText =
@@ -993,15 +755,11 @@ function startChunkRangeDownload(lang, fileUrl, startIndex, endIndex, downloadTi
   var startByte = startIndex * CHUNK_SIZE;
   var maxEndByte = totalSize > 0 ? totalSize - 1 : Infinity;
   var endByte = Math.min((endIndex * CHUNK_SIZE) + CHUNK_SIZE - 1, maxEndByte);
-
-  if (startByte > endByte) {
-    throw new Error(_(lang, 'rangeInvalid'));
-  }
+  if (startByte > endByte) throw new Error(_(lang, 'rangeInvalid'));
 
   var numChunks = Math.ceil((endByte - startByte + 1) / CHUNK_SIZE);
-  var approxSecPerChunk = 10;
   var timeEst = (function() {
-    var mins = Math.ceil(numChunks * approxSecPerChunk / 60);
+    var mins = Math.ceil(numChunks * 10 / 60);
     return '~' + mins + ' minute' + (mins !== 1 ? 's' : '');
   })();
 
@@ -1010,7 +768,7 @@ function startChunkRangeDownload(lang, fileUrl, startIndex, endIndex, downloadTi
     nextStart: startByte, chunkIndex: startIndex, totalSize: totalSize, CHUNK_SIZE: CHUNK_SIZE,
     chunkFolderId: chunkFolder.getId(), endByte: endByte,
     firstChunkIndex: startIndex, rangeEndIndex: endIndex, running: false, triggerId: null,
-    retryCounts: {}   // NEW
+    retryCounts: {}
   };
   var stateKey = 'chunkState_' + baseFileName + '_range' + startIndex + 'to' + endIndex;
   PropertiesService.getScriptProperties().setProperty(stateKey, JSON.stringify(state));
@@ -1022,13 +780,7 @@ function startChunkRangeDownload(lang, fileUrl, startIndex, endIndex, downloadTi
   PropertiesService.getScriptProperties().setProperty(stateKey, JSON.stringify(state));
 
   var buttonHtml = getDriveLinkButton(chunkFolder.getUrl(), lang);
-  return _(lang, 'rangeStart', {
-    first: startIndex,
-    last: endIndex,
-    count: numChunks,
-    time: timeEst,
-    link: buttonHtml
-  });
+  return _(lang, 'rangeStart', { first: startIndex, last: endIndex, count: numChunks, time: timeEst, link: buttonHtml });
 }
 
 function deleteOldChunkTriggers() {
@@ -1037,7 +789,7 @@ function deleteOldChunkTriggers() {
     .forEach(t => ScriptApp.deleteTrigger(t));
 }
 
-// ========== PART 7: Background chunk processor WITH RETRY ==========
+// ========== PART 7: Background chunk processor (with retry, no email) ==========
 function processChunksContinuation() {
   const props = PropertiesService.getScriptProperties();
   const keys = props.getKeys().filter(k => k.startsWith('chunkState_'));
@@ -1051,9 +803,7 @@ function processChunksContinuation() {
 
   for (const key of keys) {
     let state;
-    try {
-      state = JSON.parse(props.getProperty(key));
-    } catch (e) { continue; }
+    try { state = JSON.parse(props.getProperty(key)); } catch (e) { continue; }
     if (!state || state.running) continue;
 
     state.running = true;
@@ -1064,17 +814,13 @@ function processChunksContinuation() {
     const chunkFolder = DriveApp.getFolderById(chunkFolderId);
 
     while (nextStart <= endByte) {
-      // Check if we already exceeded max retries for this chunk
       const currentRetries = retryCounts[chunkIndex] || 0;
       if (currentRetries >= MAX_CHUNK_RETRIES) {
         console.error(`❌ Chunk ${chunkIndex} failed after ${MAX_CHUNK_RETRIES} retries. Skipping.`);
-        // Skip this chunk
         nextStart = Math.min(nextStart + CHUNK_SIZE - 1, endByte) + 1;
         chunkIndex++;
-        delete retryCounts[(chunkIndex - 1)]; // clean up
-        state.nextStart = nextStart;
-        state.chunkIndex = chunkIndex;
-        state.retryCounts = retryCounts;
+        delete retryCounts[chunkIndex - 1];
+        state.nextStart = nextStart; state.chunkIndex = chunkIndex; state.retryCounts = retryCounts;
         props.setProperty(key, JSON.stringify(state));
         continue;
       }
@@ -1086,36 +832,32 @@ function processChunksContinuation() {
           muteHttpExceptions: true,
           followRedirects: true
         });
+        const responseCode = resp.getResponseCode();
+        if (responseCode !== 200 && responseCode !== 206) {
+          throw new Error(`Chunk ${chunkIndex} failed with HTTP ${responseCode}`);
+        }
         const blob = resp.getBlob();
         const padded = String(chunkIndex + 1).padStart(3, '0');
         const file = chunkFolder.createFile(blob);
         file.setName(baseFileName + '.' + padded);
         console.log(`✅ Saved chunk ${chunkIndex} → ${baseFileName}.${padded} (bytes ${nextStart}-${end})`);
-        // Success: advance
         nextStart = end + 1;
         chunkIndex++;
-        if (retryCounts[chunkIndex - 1]) delete retryCounts[chunkIndex - 1]; // clean
+        if (retryCounts[chunkIndex - 1]) delete retryCounts[chunkIndex - 1];
       } catch (e) {
-        // Failure: increment retry count and keep same position
         if (!retryCounts) retryCounts = {};
         retryCounts[chunkIndex] = (retryCounts[chunkIndex] || 0) + 1;
         console.warn(`⚠️ Chunk ${chunkIndex} failed (attempt ${retryCounts[chunkIndex]}/${MAX_CHUNK_RETRIES}). Will retry. Error: ${e.toString()}`);
-        state.nextStart = nextStart;   // keep position
-        state.chunkIndex = chunkIndex;
-        state.retryCounts = retryCounts;
+        state.nextStart = nextStart; state.chunkIndex = chunkIndex; state.retryCounts = retryCounts;
         props.setProperty(key, JSON.stringify(state));
         state.running = false;
-        props.setProperty(key, JSON.stringify(state)); // release lock
-        return; // exit loop, next trigger will try again
+        props.setProperty(key, JSON.stringify(state));
+        return;
       }
 
-      // Update state after successful chunk
-      state.nextStart = nextStart;
-      state.chunkIndex = chunkIndex;
-      state.retryCounts = retryCounts;
+      state.nextStart = nextStart; state.chunkIndex = chunkIndex; state.retryCounts = retryCounts;
       props.setProperty(key, JSON.stringify(state));
 
-      // Check time limit
       if (Date.now() - startTime > MAX_TIME) {
         state.running = false;
         props.setProperty(key, JSON.stringify(state));
@@ -1123,12 +865,10 @@ function processChunksContinuation() {
       }
     }
 
-    // All chunks in range done
     props.deleteProperty(key);
     console.log(`🎉 All chunks saved for ${baseFileName} (state ${key}).`);
   }
 
-  // Clean up trigger if no states left
   if (props.getKeys().filter(k => k.startsWith('chunkState_')).length === 0) {
     deleteOldChunkTriggers();
   }
