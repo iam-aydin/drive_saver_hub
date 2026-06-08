@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart'; // Added url_launcher import
+import 'package:url_launcher/url_launcher.dart';
 
 final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.system);
 
@@ -11,11 +11,11 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final themeIndex = prefs.getInt('themeMode') ?? 2;
   themeNotifier.value = ThemeMode.values[themeIndex];
-  runApp(const DrivePSaverApp());
+  runApp(const DriveSaverHubApp());
 }
 
-class DrivePSaverApp extends StatelessWidget {
-  const DrivePSaverApp({super.key});
+class DriveSaverHubApp extends StatelessWidget {
+  const DriveSaverHubApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class DrivePSaverApp extends StatelessWidget {
       valueListenable: themeNotifier,
       builder: (context, themeMode, child) {
         return MaterialApp(
-          title: 'Drive Saver',
+          title: 'Drive Saver Hub',
           debugShowCheckedModeBanner: false,
 
           // Pure Material You Light Theme
@@ -200,7 +200,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void _showAboutDialog() {
     const String appVersion = "1.0.0";
     const String developerName = "Aydin Vesali M.";
-    const String githubUrl = "https://github.com/iam-aydin/Drive-Saver";
+    const String githubUrl = "https://github.com/iam-aydin/drive_saver_hub";
 
     showDialog(
       context: context,
@@ -219,7 +219,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Drive Saver',
+                'Drive Saver Hub',
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
@@ -279,7 +279,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Drive Saver'),
+        title: const Text('Drive Saver Hub'),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -304,7 +304,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Add your downloader's deployment ID",
+                "Add your Downloader's Deployment ID",
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface,
