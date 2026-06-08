@@ -1,17 +1,66 @@
-# drive_saver_hub
+Drive Saver Hub
+Drive Saver Hub is a clean, efficient, and modern Flutter application designed to organize, manage, and launch multiple Google Apps Script web deployments from a single interface.
 
-A new Flutter project.
+Built with Material Design 3 (Material You), it provides a seamless user experience, complete with dark/light mode support, persistent storage, and a specialized WebView browser that cleans up unnecessary Google UI elements for a distraction-free experience.
 
-## Getting Started
+🚀 Features
+Smart URL Parsing: Paste a full Google Script URL or just the ID—the app automatically extracts the correct Deployment ID for you.
 
-This project is a starting point for a Flutter application.
+Material 3 UI: Follows modern design guidelines with dynamic coloring, SurfaceContainerHighest styling, and intuitive navigation.
 
-A few resources to get you started if this is your first Flutter project:
+Custom Organization:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Reorder: Long-press to drag and drop your deployments to organize them exactly how you like.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Rename: Long-press any tab in the browser to give it a custom name (e.g., "Main Console," "Admin Panel").
+
+Webview Cleanup: Automatically injects scripts to hide clutter like branding wrappers, banners, and Google-specific footers, focusing on your content.
+
+Persistence: Saves your deployment list and custom tab names locally using shared_preferences.
+
+Dark/Light Mode: Full support for system-based themes or user-defined preferences.
+
+🛠 Tech Stack
+Framework: Flutter
+
+Language: Dart
+
+Key Dependencies:
+
+webview_flutter: For rendering the Google Script apps.
+
+shared_preferences: For saving user configurations locally.
+
+url_launcher: For handling external links (like GitHub repo).
+
+📥 Getting Started
+Prerequisites
+Flutter SDK installed.
+
+An IDE (Android Studio, VS Code, or IntelliJ).
+
+Installation
+Clone the repository:
+
+Bash
+git clone https://github.com/iam-aydin/drive_saver_hub.git
+cd drive_saver_hub
+Install dependencies:
+
+Bash
+flutter pub get
+Run the application:
+
+Bash
+flutter run
+📱 How to Use
+Add Deployments: Enter your Google Script Deployment URL or just the unique ID in the input field.
+
+Manage: Use the list to reorder items (long-press and drag) or tap a card to edit the ID.
+
+Launch: Tap "Launch Tabs" to open all your active deployments in the tabbed browser.
+
+Customize: Rename tabs by long-pressing the tab title in the browser view.
+
+📝 License
+This project is open-source and available for personal use.
