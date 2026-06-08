@@ -526,7 +526,7 @@ class _MultiTabBrowserState extends State<MultiTabBrowser>
   void _initTabNames() {
     _tabNames = List.generate(widget.urls.length, (index) {
       final url = widget.urls[index];
-      return _customNames[url] ?? 'Tab ${index + 1}'; // Updated default naming
+      return _customNames[url] ?? 'Downloader-${index + 1}'; // Updated default naming
     });
   }
 
